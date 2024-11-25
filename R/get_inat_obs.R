@@ -76,6 +76,8 @@ get_inat_obs <- function(query = NULL, taxon_name = NULL, taxon_id = NULL,
     return(invisible(NULL))
   }
   
+  API_lim <- 60 / 60 # limit to 60 requests per 60 seconds
+  
   ## Parsing and error-handling of input strings
   arg_list <- list(query, taxon_name, taxon_id, place_id, quality, geo,
                    year, month, day, bounds)
@@ -195,6 +197,7 @@ get_inat_obs <- function(query = NULL, taxon_name = NULL, taxon_id = NULL,
   ### easier to pull down if you make the query in json, but easier to arrange results
   ### that come down in CSV format
   ping <-  GET(base_url, query = search)
+  Sys.sleep(API_lim)
   ping_content <- content(ping, as = "text") %>%
     fromJSON()
   total_res <- ping_content$total_results
@@ -209,6 +212,7 @@ get_inat_obs <- function(query = NULL, taxon_name = NULL, taxon_id = NULL,
 
   page_query <- paste0(search, "&per_page=200&page=1")
   data <- GET(base_url, query = page_query)
+  Sys.sleep(API_lim)
   data_content <- content(data, as = "text") %>%
     fromJSON()
   data_out <- data_content$results
@@ -218,6 +222,7 @@ get_inat_obs <- function(query = NULL, taxon_name = NULL, taxon_id = NULL,
     for(i in 2:ceiling(maxresults/200)){
       page_query <- paste0(search, "&per_page=200&page=", i)
       data <-  GET(base_url, query = page_query)
+      Sys.sleep(API_lim)
       data_content <- content(data, as = "text") %>%
         fromJSON()
       data_out <- rbind(data_content$results)
