@@ -82,7 +82,10 @@ get_inat_obs_sf <- function(query = NULL,
     n_obs = nrow(rinat_results_df)
   )
   message(message_inat_results)
-  rinat_results_sf <- rinat_results_df %>%
+  rinat_results_sf <- rinat_results_df %>% 
+    tidyr::unnest(geojson) %>% 
+    tidyr::unnest_wider(coordinates, names_sep = "") %>% 
+    dplyr::rename(longitude = coordinates1, latitude = coordinates2) %>%
     sf::st_as_sf(coords = c("longitude", "latitude")) %>%
     sf::st_set_crs(4326) %>% 
     sf::st_transform(sf::st_crs(area)) %>% # transform iNat results to match area crs

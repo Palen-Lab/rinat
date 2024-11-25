@@ -69,7 +69,7 @@ get_inat_obs <- function(query = NULL, taxon_name = NULL, taxon_id = NULL,
     return(invisible(NULL))
   }
   
-  base_url <- "http://www.inaturalist.org/"
+  base_url <- "https://api.inaturalist.org/v1/observations"
   # check that iNat can be reached
   if (httr::http_error(base_url)) { # TRUE: 400 or above
     message("iNaturalist API is unavailable.")
@@ -190,12 +190,14 @@ get_inat_obs <- function(query = NULL, taxon_name = NULL, taxon_id = NULL,
 
   q_path <- "observations.csv"
   ping_path <- "observations.json"
-  ping_query <- paste0(search, "&per_page=1&page=1")
+  # ping_query <- paste0(search, "&per_page=1&page=1")
   ### Make the first ping to the server to get the number of results
   ### easier to pull down if you make the query in json, but easier to arrange results
   ### that come down in CSV format
-  ping <-  GET(base_url, path = ping_path, query = ping_query)
-  total_res <- as.numeric(ping$headers$`x-total-entries`)
+  ping <-  GET(base_url, query = search)
+  ping_content <- content(ping, as = "text") %>%
+    fromJSON()
+  total_res <- ping_content$total_results
 
   if(total_res == 0){
     stop("Your search returned zero results. Either your species of interest has no records or you entered an invalid search.")
@@ -206,17 +208,19 @@ get_inat_obs <- function(query = NULL, taxon_name = NULL, taxon_id = NULL,
   }
 
   page_query <- paste0(search, "&per_page=200&page=1")
-  data <-  GET(base_url, path = q_path, query = page_query)
-  data <- inat_handle(data)
-  data_out <- if(is.na(data)) NA else read.csv(textConnection(data), stringsAsFactors = FALSE)
+  data <- GET(base_url, query = page_query)
+  data_content <- content(data, as = "text") %>%
+    fromJSON()
+  data_out <- data_content$results
 
   if(total_res < maxresults) maxresults <- total_res
   if(maxresults > 200){
     for(i in 2:ceiling(maxresults/200)){
       page_query <- paste0(search, "&per_page=200&page=", i)
-      data <-  GET(base_url, path = q_path, query = page_query)
-      data <- inat_handle(data)
-      data_out <- rbind(data_out, read.csv(textConnection(data), stringsAsFactors = FALSE))
+      data <-  GET(base_url, query = page_query)
+      data_content <- content(data, as = "text") %>%
+        fromJSON()
+      data_out <- rbind(data_content$results)
     }
   }
 

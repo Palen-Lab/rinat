@@ -17,13 +17,14 @@ get_inat_obs_id <- function(id) {
     return(invisible(NULL))
   }
   
-  base_url <- "http://www.inaturalist.org/"
+  base_url <- "https://api.inaturalist.org/v1/observations/"
   # check that iNat can be reached
   if (httr::http_error(base_url)) { # TRUE: 400 or above
     message("iNaturalist API is unavailable.")
     return(invisible(NULL))
   }
   
-  q_path <- paste("observations/", as.character(id), ".json", sep = "")
-  fromJSON(content(GET(base_url,path = q_path), as = "text"))
+  q_url <- paste0(base_url, as.character(id))
+  print(q_url)
+  fromJSON(content(GET(q_url), as = "text"))
 }
