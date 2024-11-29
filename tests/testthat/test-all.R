@@ -52,3 +52,15 @@ test_that("inat_map returns a ggplot object", {
   res_set <- get_inat_obs("Ambystoma maculatum", maxresults = 10)
   expect_equal(class(inat_map(res_set, plot = FALSE))[1], "gg")
 })
+
+test_that("rinat_get_obs_sf runs when sf polygon provided to area param", {
+  bowen_boundary <- sf::st_read("tests/testthat/testdata/bowen_boundary/Bowen_boundary.shp")
+  species <- "Odocoileus hemionus"
+  
+  result <- rinat::get_inat_obs_sf(area = bowen_boundary,
+                                   taxon_name = species,
+                                   maxresults = 10000,
+                                   quality = "research")
+  
+  expect_s3_class(result, "data.frame")
+})

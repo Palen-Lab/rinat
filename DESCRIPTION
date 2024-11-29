@@ -22,7 +22,8 @@ Imports:
     jsonlite,
     ggplot2,
     maps,
-    sp
+    sp,
+    magrittr
 RoxygenNote: 7.3.2
 URL: https://docs.ropensci.org/rinat/ (website)
     https://github.com/ropensci/rinat (devel)
